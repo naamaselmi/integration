@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>AUTACARE.png</file>
+    </qresource>
+</RCC>
