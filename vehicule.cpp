@@ -37,7 +37,6 @@ bool Vehicule::ajouter()
     return q.exec();
 }
 
-
 bool Vehicule::supprimer(int id)
 {
     QSqlQuery q;
@@ -48,6 +47,7 @@ bool Vehicule::supprimer(int id)
     }
     return false;
 }
+
 QSqlQueryModel* Vehicule::afficher(const QString& critereTri) {
     QSqlQueryModel* model = new QSqlQueryModel();
 
@@ -82,8 +82,6 @@ QSqlQueryModel* Vehicule::afficher(const QString& critereTri) {
     return model;
 }
 
-
-
 Vehicule Vehicule::findById(int id)
 {
     QSqlQuery query;
@@ -115,7 +113,6 @@ Vehicule Vehicule::findById(int id)
     return V;
 }
 
-
 bool Vehicule::mettreAJour(int newId)
 {
     QSqlQuery query;
@@ -145,7 +142,6 @@ bool Vehicule::mettreAJour(int newId)
         return false;
     }
 }
-
 
 QSqlQueryModel* Vehicule::affi() {
     QSqlQueryModel* model = new QSqlQueryModel();

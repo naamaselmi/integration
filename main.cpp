@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include "vehicule.h"
+#include "technicien.h"
 #include "connection.h"
 
 int main(int argc, char *argv[])

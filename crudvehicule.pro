@@ -9,6 +9,7 @@ SOURCES += \
     connection.cpp \
     main.cpp \
     mainwindow.cpp \
+    technicien.cpp \
     vehicule.cpp \
     libs/qrcodegen/qrcodegen.cpp \
     libs/QrCodeGenerator.cpp  # Ensure qrcodegen.cpp is included here
@@ -16,6 +17,7 @@ SOURCES += \
 HEADERS += \
     connection.h \
     mainwindow.h \
+    technicien.h \
     vehicule.h \
     libs/QrCodeGenerator.h
 

@@ -276,7 +276,7 @@ QPushButton:pressed {
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="gestionVehicule">
      <widget class="QTabWidget" name="tabWidget">
@@ -313,7 +313,7 @@ QTabBar::tab:!selected:first {
 </string>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
