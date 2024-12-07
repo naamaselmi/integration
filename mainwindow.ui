@@ -51,7 +51,7 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -2446,7 +2446,7 @@ QTabBar::tab:!selected:first {
 }</string>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="tab_7">
        <attribute name="title">
@@ -3680,45 +3680,6 @@ QPushButton:pressed {
          <string>Recherche par nom</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="bilan">
-        <property name="geometry">
-         <rect>
-          <x>80</x>
-          <y>630</y>
-          <width>271</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>Agency FB</family>
-          <pointsize>20</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton {
-    background-color: #3F3F3F;
-    color: white;
-    border: none;
-    padding: 10px;
-    
-}
-
-QPushButton:hover {
-    background-color: #B81F25;
-    border-radius: 15px; /* Rayon pour arrondir les coins lors du survol */
-}
-
-QPushButton:pressed {
-    background-color: #B81F25;
-    border-radius: 10px; /* Rayon pour arrondir les coins lors du clic */
-}</string>
-        </property>
-        <property name="text">
-         <string>Bilan des Absences</string>
-        </property>
-       </widget>
        <widget class="QWidget" name="layoutWidget_40">
         <property name="geometry">
          <rect>
@@ -3796,6 +3757,45 @@ QPushButton:pressed {
           </widget>
          </item>
         </layout>
+       </widget>
+       <widget class="QPushButton" name="statistique">
+        <property name="geometry">
+         <rect>
+          <x>100</x>
+          <y>690</y>
+          <width>281</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>Agency FB</family>
+          <pointsize>20</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: #3F3F3F;
+    color: white;
+    border: none;
+    padding: 10px;
+    
+}
+
+QPushButton:hover {
+    background-color: #B81F25;
+    border-radius: 15px; /* Rayon pour arrondir les coins lors du survol */
+}
+
+QPushButton:pressed {
+    background-color: #B81F25;
+    border-radius: 10px; /* Rayon pour arrondir les coins lors du clic */
+}</string>
+        </property>
+        <property name="text">
+         <string>Statistique des compétences</string>
+        </property>
        </widget>
       </widget>
       <widget class="QWidget" name="tab_11">
@@ -3878,70 +3878,6 @@ QPushButton:pressed {
         </property>
         <property name="text">
          <string>Afficher localisation</string>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="tab_12">
-       <attribute name="title">
-        <string>Statistiques</string>
-       </attribute>
-       <widget class="QTableView" name="tableView_3">
-        <property name="geometry">
-         <rect>
-          <x>190</x>
-          <y>140</y>
-          <width>521</width>
-          <height>421</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="statistique">
-        <property name="geometry">
-         <rect>
-          <x>570</x>
-          <y>590</y>
-          <width>361</width>
-          <height>71</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>Agency FB</family>
-          <pointsize>20</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton {
-    background-color: #3F3F3F;
-    color: white;
-    border: none;
-    padding: 10px;
-    
-}
-
-QPushButton:hover {
-    background-color: #B81F25;
-    border-radius: 15px; /* Rayon pour arrondir les coins lors du survol */
-}
-
-QPushButton:pressed {
-    background-color: #B81F25;
-    border-radius: 10px; /* Rayon pour arrondir les coins lors du clic */
-}</string>
-        </property>
-        <property name="text">
-         <string>Statistique des compétences</string>
-        </property>
-       </widget>
-       <widget class="QTableView" name="tableView_4">
-        <property name="geometry">
-         <rect>
-          <x>770</x>
-          <y>140</y>
-          <width>521</width>
-          <height>421</height>
-         </rect>
         </property>
        </widget>
       </widget>
@@ -4036,264 +3972,6 @@ QPushButton:pressed {
           <height>361</height>
          </rect>
         </property>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="tab_14">
-       <attribute name="title">
-        <string>Gestion des documents</string>
-       </attribute>
-       <widget class="QGroupBox" name="groupBoxDocuments">
-        <property name="geometry">
-         <rect>
-          <x>240</x>
-          <y>40</y>
-          <width>1311</width>
-          <height>711</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>Agency FB</family>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
-        <property name="title">
-         <string>Gestion des documents</string>
-        </property>
-        <widget class="QTableWidget" name="documentsTable">
-         <property name="geometry">
-          <rect>
-           <x>130</x>
-           <y>150</y>
-           <width>901</width>
-           <height>331</height>
-          </rect>
-         </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
-         </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
-         </property>
-         <property name="horizontalScrollMode">
-          <enum>QAbstractItemView::ScrollPerPixel</enum>
-         </property>
-         <property name="columnCount">
-          <number>4</number>
-         </property>
-         <attribute name="horizontalHeaderCascadingSectionResizes">
-          <bool>true</bool>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>Nom</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Type</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Date</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Taille</string>
-          </property>
-         </column>
-        </widget>
-        <widget class="QWidget" name="layoutWidget_42">
-         <property name="geometry">
-          <rect>
-           <x>190</x>
-           <y>30</y>
-           <width>701</width>
-           <height>51</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_42">
-          <item>
-           <widget class="QLabel" name="label_45">
-            <property name="font">
-             <font>
-              <family>Agency FB</family>
-              <pointsize>20</pointsize>
-              <bold>false</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>ID technicien</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="idTechDoc">
-            <property name="styleSheet">
-             <string notr="true">QLineEdit {
-    font-family: 'Agency FB';     /* Police Agency FB */
-    font-size: 14pt;              /* Taille de la police */
-    border: 1px solid #A9A9A9;    /* Bordure grise (#A9A9A9 pour gris clair) */
-    padding: 5px;                 /* Espacement interne pour le texte */
-    border-radius: 10px;          /* Rayon pour arrondir les coins */
-}</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="layoutWidget_43">
-         <property name="geometry">
-          <rect>
-           <x>190</x>
-           <y>90</y>
-           <width>701</width>
-           <height>51</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_43">
-          <item>
-           <widget class="QLabel" name="label_46">
-            <property name="font">
-             <font>
-              <family>Agency FB</family>
-              <pointsize>20</pointsize>
-              <bold>false</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Type du document</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="typeDocument">
-            <property name="styleSheet">
-             <string notr="true">QLineEdit {
-    font-family: 'Agency FB';     /* Police Agency FB */
-    font-size: 14pt;              /* Taille de la police */
-    border: 1px solid #A9A9A9;    /* Bordure grise (#A9A9A9 pour gris clair) */
-    padding: 5px;                 /* Espacement interne pour le texte */
-    border-radius: 10px;          /* Rayon pour arrondir les coins */
-}</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="layoutWidget_44">
-         <property name="geometry">
-          <rect>
-           <x>130</x>
-           <y>490</y>
-           <width>901</width>
-           <height>181</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_44">
-          <item>
-           <widget class="QPushButton" name="ajouterDocument">
-            <property name="font">
-             <font>
-              <family>Agency FB</family>
-              <pointsize>20</pointsize>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton {
-    background-color: #3F3F3F;
-    color: white;
-    border: none;
-    padding: 10px;
-    
-}
-
-QPushButton:hover {
-    background-color: #B81F25;
-    border-radius: 15px; /* Rayon pour arrondir les coins lors du survol */
-}
-
-QPushButton:pressed {
-    background-color: #B81F25;
-    border-radius: 10px; /* Rayon pour arrondir les coins lors du clic */
-}</string>
-            </property>
-            <property name="text">
-             <string>Ajouter</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="supprimerDocument">
-            <property name="font">
-             <font>
-              <family>Agency FB</family>
-              <pointsize>20</pointsize>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton {
-    background-color: #3F3F3F;
-    color: white;
-    border: none;
-    padding: 10px;
-    
-}
-
-QPushButton:hover {
-    background-color: #B81F25;
-    border-radius: 15px; /* Rayon pour arrondir les coins lors du survol */
-}
-
-QPushButton:pressed {
-    background-color: #B81F25;
-    border-radius: 10px; /* Rayon pour arrondir les coins lors du clic */
-}</string>
-            </property>
-            <property name="text">
-             <string>Supprimer</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="visualiserDocument">
-            <property name="font">
-             <font>
-              <family>Agency FB</family>
-              <pointsize>20</pointsize>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton {
-    background-color: #3F3F3F;
-    color: white;
-    border: none;
-    padding: 10px;
-    
-}
-
-QPushButton:hover {
-    background-color: #B81F25;
-    border-radius: 15px; /* Rayon pour arrondir les coins lors du survol */
-}
-
-QPushButton:pressed {
-    background-color: #B81F25;
-    border-radius: 10px; /* Rayon pour arrondir les coins lors du clic */
-}</string>
-            </property>
-            <property name="text">
-             <string>Visualiser</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
        </widget>
       </widget>
      </widget>

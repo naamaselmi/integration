@@ -71,20 +71,18 @@ private slots:
  //void on_notification_clicked();
  void on_suivie_des_absences_clicked();
  void on_afficher_clicked();
- //void on_exportExcel_clicked();
+ void on_exportExcel_clicked();
  void on_modeButton_clicked();
  void on_afficherCarte_clicked();
- void on_ajouterDocument_clicked();
- void on_supprimerDocument_clicked();
- void on_visualiserDocument_clicked();
- void on_idTechDoc_textChanged();
  void on_trier_nom_clicked();
  void on_trier_absence_clicked();
  void on_recherchenom_clicked();
  void on_recherchecompetence_clicked();
- void on_bilan_clicked();
+
 
 //----------------------------------------------------------------------------------------------------------------------
+ void on_notification_clicked();
+
 private:
  //----------------------------------------hamza-----------------------------------
     Ui::MainWindow *ui;
@@ -96,11 +94,8 @@ private:
      technicien tech;
      PieChartWidget *pieChartWidget;
      bool isNightMode = false;
-     QTableWidget* documentsTable;
-     QLineEdit* typeDocument;       // On utilise un simple LineEdit au lieu d'un ComboBox
-     QString documentPath;
-     void setupDocumentsUI();
-     void chargerDocuments(int idTech);
+
+
  //-----------------------------------------------------------------------------
 };
 

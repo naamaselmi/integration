@@ -5,8 +5,8 @@ from email.mime.multipart import MIMEMultipart
 
 def send_email(owner_name, brand, model, year, plate, state, maintenance_history, recipient_email):
     sender_email = "6ysfcrybaby9@gmail.com"
-    sender_password = "bsxa kzmi hdzn gwyk"  # Use an app password for security
-
+    sender_password = "yhjz gawy dbvj xwmf"  # Use an app password for security
+#bsxa kzmi hdzn gwyk
     # Email content
     subject = "Informations sur votre véhicule"
     body = f"""

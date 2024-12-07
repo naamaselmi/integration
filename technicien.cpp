@@ -254,76 +254,91 @@ bool technicien::convertirEnPDF(const QString &filePath) const
 //-------------------------------------------------------------------------------------------------------------------------
 
 bool technicien::convertirEnPDFAbsents(const QString &filePath, const QList<technicien> &techniciensAbsents) {
-     // Create a QPdfWriter with the specified file path
-     QPdfWriter pdfWriter(filePath);
-     pdfWriter.setPageSize(QPageSize(QPageSize::A4));    // Set page size
-     pdfWriter.setResolution(300);                       // Set resolution (DPI)
-     pdfWriter.setTitle("Bilan des Absences");
+    // Initialize the PDF writer
+    QPdfWriter pdfWriter(filePath);
+    pdfWriter.setPageSize(QPageSize(QPageSize::A4));
+    pdfWriter.setResolution(300);
+    pdfWriter.setTitle(QObject::tr("Bilan des Absences"));
 
-     // Create a QPainter to draw on the PDF
-     QPainter painter(&pdfWriter);
+    QPainter painter(&pdfWriter);
 
-     if (!painter.isActive()) {
-         return false; // Return false if the painter failed to activate
-     }
+    if (!painter.isActive()) {
+        return false; // Return false if the painter failed to activate
+    }
 
-     // Set fonts and basic styles
-     QFont titleFont("Arial", 20, QFont::Bold);
-     QFont headerFont("Arial", 14, QFont::Bold);
-     QFont contentFont("Arial", 12);
+    // Set fonts and styles
+    QFont titleFont("Arial", 20, QFont::Bold);
+    QFont headerFont("Arial", 12, QFont::Bold);
+    QFont contentFont("Arial", 10);
 
-     // Title - Centered in red
-     painter.setFont(titleFont);
-     painter.setPen(Qt::red);
-     QRect titleRect(0, 50, pdfWriter.width(), 100);
-     painter.drawText(titleRect, Qt::AlignCenter, QObject::tr("Bilan des Absences"));
+    // Title
+    painter.setFont(titleFont);
+    painter.setPen(Qt::red);
+    QRect titleRect(0, 50, pdfWriter.width(), 100);
+    painter.drawText(titleRect, Qt::AlignCenter, QObject::tr("Bilan des Absences"));
 
-     // Move down for the content
-     painter.setPen(Qt::black);
-     painter.setFont(headerFont);
-     int yPosition = 250;  // Starting position for the table
+    // Set up table headers
+    int margin = 50;       // Left margin
+    int rowHeight = 40;    // Height for each row
+    int yPosition = 200;   // Starting y position for the table
 
-     // Table headers with better spacing
-     int columnX[] = {100, 300, 500, 800, 1300, 1700};  // X positions for each column
-     painter.drawText(columnX[0], yPosition, QObject::tr("ID"));
-     painter.drawText(columnX[1], yPosition, QObject::tr("Nom"));
-     painter.drawText(columnX[2], yPosition, QObject::tr("Prénom"));
-     painter.drawText(columnX[3], yPosition, QObject::tr("Compétence"));
-     painter.drawText(columnX[4], yPosition, QObject::tr("Téléphone"));
-     painter.drawText(columnX[5], yPosition, QObject::tr("Adresse"));
+    painter.setFont(headerFont);
+    painter.setPen(Qt::black);
 
-     // Draw a line under the headers
-     yPosition += 20;
-     painter.drawLine(100, yPosition, pdfWriter.width() - 100, yPosition);
+    // Column positions
+    QVector<int> columnX = {margin, 150, 300, 500, 700, 1000, 1300, 1600};
 
-     // Set content font
-     painter.setFont(contentFont);
-     yPosition += 250;  // Start content after header
+    // Draw headers
+    painter.drawText(columnX[0], yPosition, QObject::tr("ID"));
+    painter.drawText(columnX[1], yPosition, QObject::tr("Nom"));
+    painter.drawText(columnX[2], yPosition, QObject::tr("Prénom"));
+    painter.drawText(columnX[3], yPosition, QObject::tr("Compétence"));
+    painter.drawText(columnX[4], yPosition, QObject::tr("Disponibilité"));
+    painter.drawText(columnX[5], yPosition, QObject::tr("Téléphone"));
+    painter.drawText(columnX[6], yPosition, QObject::tr("Adresse"));
 
-     // Populate rows with absent technicians
-     for (const technicien &t : techniciensAbsents) {
-         if (t.getabsent().toLower() == "oui") { // Check if the technician is absent
-             painter.drawText(columnX[0], yPosition, QString::number(t.getID()));
-             painter.drawText(columnX[1], yPosition, t.getNom());
-             painter.drawText(columnX[2], yPosition, t.getPrenom());
-             painter.drawText(columnX[3], yPosition, t.getcompetence());
-             painter.drawText(columnX[4], yPosition, t.getphoneNumber());
-             painter.drawText(columnX[5], yPosition, t.getadresse());
-             yPosition += 60;  // Increase the yPosition for the next row
+    // Line under headers
+    yPosition += rowHeight;
+    painter.drawLine(margin, yPosition, pdfWriter.width() - margin, yPosition);
 
-             // Handle page break if reaching the end of the page
-             if (yPosition > pdfWriter.height() - 100) {
-                 pdfWriter.newPage();
-                 yPosition = 100; // Reset y position for the new page
-             }
-         }
-     }
+    // Content rows
+    painter.setFont(contentFont);
+    yPosition += rowHeight;
 
-     // End the painter to finalize the PDF
-     painter.end();
+    for (const technicien &t : techniciensAbsents) {
+        if (yPosition > pdfWriter.height() - 100) { // Handle page break
+            pdfWriter.newPage();
+            yPosition = 200; // Reset y position for new page
 
-     return true;  // Return true if successful
- }
+            // Redraw headers on the new page
+            painter.setFont(headerFont);
+            painter.drawText(columnX[0], yPosition, QObject::tr("ID"));
+            painter.drawText(columnX[1], yPosition, QObject::tr("Nom"));
+            painter.drawText(columnX[2], yPosition, QObject::tr("Prénom"));
+            painter.drawText(columnX[3], yPosition, QObject::tr("Compétence"));
+            painter.drawText(columnX[4], yPosition, QObject::tr("Disponibilité"));
+            painter.drawText(columnX[5], yPosition, QObject::tr("Téléphone"));
+            painter.drawText(columnX[6], yPosition, QObject::tr("Adresse"));
+
+            yPosition += rowHeight;
+            painter.drawLine(margin, yPosition, pdfWriter.width() - margin, yPosition);
+            yPosition += rowHeight;
+        }
+
+        // Draw content rows
+        painter.drawText(columnX[0], yPosition, QString::number(t.getID()));
+        painter.drawText(columnX[1], yPosition, t.getNom());
+        painter.drawText(columnX[2], yPosition, t.getPrenom());
+        painter.drawText(columnX[3], yPosition, t.getcompetence());
+        painter.drawText(columnX[4], yPosition, t.getdisponibilite());
+        painter.drawText(columnX[5], yPosition, t.getphoneNumber());
+        painter.drawText(columnX[6], yPosition, t.getadresse());
+        yPosition += rowHeight;
+    }
+
+    painter.end();
+    return true;
+}
 
 //-------------------------------------------------------------------------------------------------------------------------
 

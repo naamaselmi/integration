@@ -1,4 +1,4 @@
-QT       += core gui sql charts widgets svg  # Add svg module for QSvgRenderer
+QT       += core gui sql charts widgets svg network  # Add svg module for QSvgRenderer
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

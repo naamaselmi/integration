@@ -32,6 +32,11 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrlQuery>
+
 
 #include "libs/QrCodeGenerator.h"  // Adjust the path to match the location
 
@@ -61,7 +66,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 //-------------------------------------------------------------------------------------------------
-void MainWindow::switchToGestionVehicule()
+void MainWindow::  switchToGestionVehicule()
 {
     qDebug() << "Switching to Gestion Vehicule";
     ui->stackedWidget->setCurrentIndex(0); // Index of Gestion Vehicule page
@@ -79,7 +84,7 @@ void MainWindow::switchToGestionTechnicien()
 
 //---------------------------------------------hamza---------------------------------------------------
 
- // Include QRegularExpression header
+
 void MainWindow::on_pushButtonAjouter_clicked()
 {
     bool ok;
@@ -115,13 +120,16 @@ void MainWindow::on_pushButtonAjouter_clicked()
         return; // Exit the function if immatriculation does not match the pattern
     }
 
+    immatriculation = immatriculation.toUpper(); // Convert immatriculation to uppercase
+
     QString marque = ui->lineEditMarque->text();
     QString modele = ui->lineEditModele->text();
     QString type = ui->lineEditType->text();
-    QString etat = ui->lineEditEtat->text();
-    QString email = ui->email->text();
 
-    // Email validation using a regular expression for a basic email format
+    // Toujours définir l'état à "En cours de traitement"
+    QString etat = "En cours de traitement";
+
+    QString email = ui->email->text();
     QRegularExpression emailRegex("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$");
     if (!emailRegex.match(email).hasMatch()) {
         QMessageBox::warning(this, tr("Erreur de saisie"),
@@ -129,9 +137,8 @@ void MainWindow::on_pushButtonAjouter_clicked()
         return; // Exit the function if email format is invalid
     }
 
-    // Validation for the owner's name: only letters allowed
     QString nom_proprietaire = ui->lineEditNomP->text();
-    QRegularExpression nameRegex("^[A-Za-z ]+$"); // Only letters (upper and lower case)
+    QRegularExpression nameRegex("^[A-Za-z ]+$");
     if (!nameRegex.match(nom_proprietaire).hasMatch()) {
         QMessageBox::warning(this, tr("Erreur de saisie"),
                              tr("Le nom du propriétaire doit être composé uniquement de lettres."), QMessageBox::Ok);
@@ -530,7 +537,7 @@ void MainWindow::on_exporterPDF_clicked()
 
     // Add logo at the bottom left
     // Add logo at the bottom left
-    QImage logo("C:/Users/zussl/Desktop/AUTACAREloding.png");  // Load the logo image
+    QImage logo("C:/Users/zussl/Desktop/photo/AUTACAREloding.png");  // Load the logo image
     if (!logo.isNull()) {  // Check if the image loaded correctly
         // Scale the logo by 400%
         int scaledWidth = logo.width() * 5;
@@ -660,44 +667,104 @@ void MainWindow::on_triparNomProprietaire_clicked()
 
 void MainWindow::on_scann_clicked()
 {
-    // Path to your Python script
-    QString pythonScriptPath = "C:/Users/zussl/Desktop/projet/mou7awla2.py";
+    // Chemins vers Python et les scripts
+    QString pythonPath = "C:/Program Files/Python310/python.exe"; // Chemin vers Python
+    QString scriptPathExtract = "C:/Users/zussl/Desktop/projet/mou7awla2.py"; // Script pour extraire la matricule
+    QString scriptPathMail = "C:/Users/zussl/Documents/crudvehicule/mailing.py"; // Script pour envoyer des emails
 
-    // Path to the Python executable (adjust if necessary)
-    QString pythonPath = "C:/Program Files/Python310/python.exe";
+    QProcess processExtract;
+    QStringList argsExtract;
+    processExtract.start(pythonPath, QStringList() << scriptPathExtract);
 
-    QProcess *process = new QProcess(this);
-
-    connect(process, &QProcess::readyReadStandardOutput, this, [this, process]() {
-        // Lire la sortie du processus
-        QString output = process->readAllStandardOutput().trimmed();
-        qDebug() << "Sortie brute du script Python :" << output;
-
-        // Vérifier la sortie
-        QStringList values = output.split(" ");
-        qDebug() << "Valeurs après split :" << values;
-
-        if (values.size() == 2) {
-            QString t1 = values[0];
-            QString t2 = values[1];
-            qDebug() << "Valeurs t1 et t2 extraites :" << t1 << ", " << t2;
-
-            // Mettre à jour le QLabel avec les valeurs t1 et t2
-            labellepainture->setText("t1: " + t1 + ", t2: " + t2);
-        } else {
-            // En cas d'erreur, afficher un message
-            labellepainture->setText("Erreur: Valeurs non valides");
-        }
-    });
-
-    process->start(pythonPath, QStringList() << pythonScriptPath);
-
-    if (!process->waitForStarted()) {
-        qDebug() << "Erreur : Impossible de démarrer le processus Python !";
+    // Attendre que le script d'extraction démarre
+    if (!processExtract.waitForStarted() || !processExtract.waitForFinished()) {
+        QMessageBox::warning(this, "Erreur", "Le script d'extraction n'a pas pu être exécuté.");
         return;
     }
-}
 
+    // Lire la sortie du script d'extraction
+    QString outputExtract = processExtract.readAllStandardOutput().trimmed();
+    qDebug() << "Output extract:" << outputExtract;
+
+    // Extraction de la matricule via expression régulière
+    QRegularExpression regex("([0-9]{3}[tT][uU][nN][0-9]{4})"); // Format attendu : 3 chiffres, TUN, 4 chiffres
+    QRegularExpressionMatch match = regex.match(outputExtract);
+
+    if (!match.hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "Aucune matricule valide détectée.");
+        return;
+    }
+
+    QString licensePlate = match.captured(1); // Matricule extraite
+    ui->labellepainture->setText(licensePlate); // Afficher la matricule détectée
+    QSqlQuery query;
+
+    // Rechercher la voiture dans la base de données
+    query.prepare("SELECT * FROM vehicule WHERE immatriculation = :licensePlate");
+    query.bindValue(":licensePlate", licensePlate);
+
+    if (query.exec() && query.next()) {
+        // Matricule trouvée
+        QString ownerName = query.value("proprietaire").toString();
+        QString brand = query.value("marque").toString();
+        QString model = query.value("modele").toString();
+        QString year = query.value("annee").toString();
+        QString email = query.value("email").toString();
+
+        // Mettre à jour l'état à "Terminé"
+        QSqlQuery updateQuery;
+        updateQuery.prepare("UPDATE vehicule SET etat = 'Terminé' WHERE immatriculation = :licensePlate");
+        updateQuery.bindValue(":licensePlate", licensePlate);
+
+        if (updateQuery.exec()) {
+            QMessageBox::information(this, "Mise à jour réussie", "L'état de la voiture a été mis à jour à 'Terminé'.");
+
+            // Construire le message pour le propriétaire
+            QString message = QString(
+                "Bonjour %1,\n\n"
+                "Votre voiture de marque %2, modèle %3, année %4, immatriculée %5, est maintenant prête.\n"
+                "Vous pouvez venir la récupérer.\n\n"
+                "Merci pour votre confiance."
+            ).arg(ownerName, brand, model, year, licensePlate);
+
+            // Construire les arguments pour le script Python d'envoi d'email
+            QStringList argsMail;
+            argsMail << ownerName << brand << model << year << licensePlate << "Terminer" << message << email;
+
+            // Exécuter le script Python pour envoyer l'email au propriétaire
+            int exitCodeMail = QProcess::execute(pythonPath, QStringList() << scriptPathMail << argsMail);
+            if (exitCodeMail == 0) {
+                QMessageBox::information(this, "Email envoyé", "Un email a été envoyé au propriétaire.");
+            } else {
+                QMessageBox::warning(this, "Erreur", "Erreur lors de l'envoi de l'email au propriétaire.");
+            }
+        } else {
+            QMessageBox::warning(this, "Erreur", "Échec de la mise à jour de l'état.");
+        }
+    } else {
+        // Matricule non trouvée, envoyer un email clair à l'administrateur
+        QString adminEmail = "zusslimani001122@gmail.com";
+
+        // Construire le message à envoyer à l'administrateur
+        QString message = QString(
+            "Attention\n\n"
+            "Bonjour Monsieur Hamza,\n\n"
+            "Il y a une voiture sous la matricule %1 dans votre parking."
+        ).arg(licensePlate);
+
+        // Construire les arguments pour le script Python d'envoi d'email
+        QStringList argsMail;
+        argsMail << "Hamza" << "inconnu" << "inconnu" << "inconnu" << licensePlate << "Voiture Anonyme" << message << adminEmail;
+
+        // Exécuter le script Python pour envoyer l'email à l'administrateur
+        int exitCodeMail = QProcess::execute(pythonPath, QStringList() << scriptPathMail << argsMail);
+        if (exitCodeMail == 0) {
+            QMessageBox::information(this, "Email envoyé", "Un email a été envoyé à l'administrateur.");
+        } else {
+            QMessageBox::warning(this, "Erreur", "Erreur lors de l'envoi de l'email à l'administrateur.");
+        }
+    }
+}
 
 //------------------------------------------------------------------------------------------------
 
@@ -870,11 +937,10 @@ void MainWindow::on_miseajour_clicked()
 
 }
 
-/*
+
 
 void MainWindow::on_exportExcel_clicked()
 {
-    // Ouvrir une boîte de dialogue pour sélectionner où sauvegarder le fichier
     QString fileName = QFileDialog::getSaveFileName(this,
         "Enregistrer le fichier Excel",
         "",
@@ -884,7 +950,6 @@ void MainWindow::on_exportExcel_clicked()
         return;
     }
 
-    // Ajouter automatiquement l'extension .csv si nécessaire
     if (!fileName.endsWith(".csv", Qt::CaseInsensitive)) {
         fileName += ".csv";
     }
@@ -895,33 +960,27 @@ void MainWindow::on_exportExcel_clicked()
         return;
     }
 
-    // Créer un flux de texte avec l'encodage UTF-8 avec BOM pour Excel
     QTextStream out(&file);
-    out.setCodec("UTF-8");
-    out.setGenerateByteOrderMark(true);
+    // Écrire le BOM UTF-8 si nécessaire
+    out.setEncoding(QStringConverter::Utf8);
+    out << "\xEF\xBB\xBF"; // BOM UTF-8 pour Excel
 
-    // Fonction helper pour échapper les caractères spéciaux
     auto escapeCSV = [](const QString& str) -> QString {
         QString result = str;
-        // Remplacer les points-virgules par des virgules
         result.replace(";", ",");
-        // Si la chaîne contient des virgules, des guillemets ou des sauts de ligne
-        if (result.contains(QRegExp("[,\"\n\r]"))) {
-            // Échapper les guillemets en les doublant
-            result.replace("\"", "\"\"");
-            // Entourer la chaîne de guillemets
-            result = "\"" + result + "\"";
+        // Utiliser QRegularExpression à la place de QRegExp
+        if (result.contains(QRegularExpression("[,\"\n\r]"))) {
+            result.replace("\"", "\"\""); // Échapper les guillemets
+            result = "\"" + result + "\""; // Entourer la chaîne de guillemets
         }
         return result;
     };
 
-    // Écrire l'en-tête avec des points-virgules comme séparateurs
     out << "ID;Nom;Prénom;Compétence;Disponibilité;Téléphone;Absent;Adresse\n";
 
-    // Récupérer les données
     QSqlQuery query;
-    query.prepare("SELECT id, nom, prenom, competence, disponibilite, phoneNumber, absent ,adresse "
-                 "FROM technicien");
+    query.prepare("SELECT * "
+                  "FROM TECHNICEN");
 
     if (!query.exec()) {
         QMessageBox::critical(this, "Erreur",
@@ -929,20 +988,16 @@ void MainWindow::on_exportExcel_clicked()
         return;
     }
 
-    // Écrire les données
     while (query.next()) {
         QStringList row;
-        // Récupérer et formater chaque champ
-        for (int i = 0; i < 7; ++i) {
+        for (int i = 0; i < 8; ++i) { // Ajusté pour correspondre à vos colonnes
             row << escapeCSV(query.value(i).toString());
         }
-        // Joindre les champs avec des points-virgules
         out << row.join(";") << "\n";
     }
 
     file.close();
 
-    // Proposer d'ouvrir le fichier
     QMessageBox::StandardButton reply = QMessageBox::question(this,
         "Export terminé",
         "Les données ont été exportées avec succès. Voulez-vous ouvrir le fichier ?",
@@ -953,7 +1008,8 @@ void MainWindow::on_exportExcel_clicked()
     }
 }
 
-*/
+
+
 
 void MainWindow::on_recherche_clicked()
 {
@@ -1151,16 +1207,19 @@ void MainWindow::on_suivie_des_absences_clicked()
         ui->tableabsence->setModel(model);
 }
 
-/*void MainWindow::on_notification_clicked()
+void MainWindow::on_notification_clicked()
 {
-
+        const QString ACCOUNT_SID = "AC2e8aa8918cc88b8a47705249e8307ac3";
+        const QString AUTH_TOKEN = "b53accf8ffcfcb4d7d4417afda122d88";
+        const QString FROM_NUMBER = "+14159664006";  // Votre numéro Twilio
+        const QString TO_NUMBER = "+21655536568";    // Numéro qui recevra les SMS
 
         // Création du manager
         QNetworkAccessManager* manager = new QNetworkAccessManager(this);
 
         // Récupération des techniciens absents
         QSqlQuery query;
-        query.prepare("SELECT nom, prenom FROM technicien WHERE absent = 'oui'");
+        query.prepare("SELECT * FROM TECHNICEN WHERE ABSENT = 'oui'");
 
         if (!query.exec()) {
             QMessageBox::critical(this, "Erreur",
@@ -1222,7 +1281,6 @@ void MainWindow::on_suivie_des_absences_clicked()
         });
     }
 }
-*/
 
 void MainWindow::on_modeButton_clicked()
 {
@@ -1347,209 +1405,7 @@ void MainWindow::on_afficherCarte_clicked()
     }
 }
 
-void MainWindow::on_idTechDoc_textChanged()
-{
-    QString idText = ui->idTechDoc->text().trimmed();
-    if (!idText.isEmpty()) {
-        bool ok;
-        int idTech = idText.toInt(&ok);
-        if (ok) {
-            chargerDocuments(idTech);
-        }
-    }
-}
 
-void MainWindow::on_ajouterDocument_clicked()
-{
-    // Vérifier l'ID du technicien
-    bool ok;
-    int idTech = ui->idTechDoc->text().trimmed().toInt(&ok);
-    if (!ok || idTech <= 0) {
-        QMessageBox::warning(this, "Erreur", "Veuillez entrer un ID de technicien valide.");
-        return;
-    }
-
-    // Vérifier si le technicien existe
-    QSqlQuery checkQuery;
-    checkQuery.prepare("SELECT NOM_T FROM TECHNICEN WHERE ID = :id");
-    checkQuery.bindValue(":id", idTech);
-
-    if (!checkQuery.exec() || !checkQuery.next()) {
-        QMessageBox::warning(this, "Erreur", "Aucun technicien trouvé avec cet ID.");
-        return;
-    }
-
-    // Vérifier le type de document
-    QString type = ui->typeDocument->text().trimmed();
-    if (type.isEmpty()) {
-        QMessageBox::warning(this, "Erreur", "Veuillez spécifier le type de document.");
-        return;
-    }
-
-    // Sélectionner le fichier
-    QString fileName = QFileDialog::getOpenFileName(this, "Sélectionner un document", "", "Tous les fichiers (*.*)");
-    if (fileName.isEmpty())
-        return;
-
-    // Vérifier si le fichier existe
-    QFileInfo fileInfo(fileName);
-    if (!fileInfo.exists()) {
-        QMessageBox::warning(this, "Erreur", "Le fichier sélectionné n'existe pas.");
-        return;
-    }
-
-    // Générer un nouveau nom de fichier unique
-    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
-    QString newFileName = QString("%1_%2_%3.%4")
-                              .arg(idTech)
-                              .arg(fileInfo.baseName())
-                              .arg(timestamp)
-                              .arg(fileInfo.suffix());
-
-    // Copier le fichier vers le dossier des documents
-    QString destination = QDir(documentPath).filePath(newFileName);
-    if (!QFile::copy(fileName, destination)) {
-        QMessageBox::warning(this, "Erreur", "Erreur lors de la copie du fichier.");
-        return;
-    }
-
-    // Sauvegarder dans la base de données
-    QSqlQuery query;
-    query.prepare("INSERT INTO documents (tech_id, nom_fichier, type, date_ajout, chemin) "
-                  "VALUES (:tech_id, :nom_fichier, :type, :date_ajout, :chemin)");
-    query.bindValue(":tech_id", idTech);
-    query.bindValue(":nom_fichier", newFileName); // Save the unique file name
-    query.bindValue(":type", type);
-    query.bindValue(":date_ajout", QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
-    query.bindValue(":chemin", destination); // Save the full file path
-
-    if (query.exec()) {
-        QMessageBox::information(this, "Succès", "Document ajouté avec succès.");
-        chargerDocuments(idTech);
-    } else {
-        QMessageBox::warning(this, "Erreur", "Erreur lors de l'enregistrement: " + query.lastError().text());
-        QFile::remove(destination); // Rollback file copy on database failure
-    }
-}
-
-void MainWindow::on_supprimerDocument_clicked()
-{
-    bool ok;
-    int idTech = ui->idTechDoc->text().trimmed().toInt(&ok);
-    if(!ok || idTech <= 0) {
-        QMessageBox::warning(this, "Erreur",
-            "Veuillez entrer un ID de technicien valide.");
-        return;
-    }
-
-    if(!ui->documentsTable->currentItem()) {
-        QMessageBox::warning(this, "Erreur",
-            "Veuillez sélectionner un document à supprimer.");
-        return;
-    }
-
-    int row = ui->documentsTable->currentRow();
-    QString fileName = ui->documentsTable->item(row, 0)->text();
-
-    if(QMessageBox::question(this, "Confirmation",
-        "Voulez-vous vraiment supprimer ce document ?",
-        QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-
-        QSqlQuery query;
-        query.prepare("DELETE FROM documents WHERE tech_id = ? AND nom_fichier = ?");
-        query.addBindValue(idTech);
-        query.addBindValue(fileName);
-
-        if(query.exec()) {
-            QFile::remove(documentPath + fileName);
-            chargerDocuments(idTech);
-            QMessageBox::information(this, "Succès",
-                "Document supprimé avec succès.");
-        } else {
-            QMessageBox::warning(this, "Erreur",
-                "Erreur lors de la suppression du document.");
-        }
-    }
-}
-
-void MainWindow::on_visualiserDocument_clicked()
-{
-    if (!ui->documentsTable->currentItem()) {
-        QMessageBox::warning(this, "Erreur", "Veuillez sélectionner un document à visualiser.");
-        return;
-    }
-
-    int row = ui->documentsTable->currentRow();
-    QString fileName = ui->documentsTable->item(row, 0)->text();
-
-    // Fetch the full file path from the database
-    QSqlQuery query;
-    query.prepare("SELECT chemin FROM documents WHERE nom_fichier = :nom_fichier");
-    query.bindValue(":nom_fichier", fileName);
-
-    if (!query.exec() || !query.next()) {
-        QMessageBox::warning(this, "Erreur", "Impossible de localiser le chemin du document dans la base de données.");
-        return;
-    }
-
-    QString filePath = query.value(0).toString();
-
-    // Check if the file exists
-    if (!QFile::exists(filePath)) {
-        QMessageBox::warning(this, "Erreur", QString("Le fichier n'existe pas à l'emplacement spécifié:\n%1").arg(filePath));
-        return;
-    }
-
-    // Open the file
-    if (!QDesktopServices::openUrl(QUrl::fromLocalFile(filePath))) {
-        QMessageBox::warning(this, "Erreur", "Impossible d'ouvrir le document. Vérifiez votre configuration système.");
-    }
-}
-
-void MainWindow::chargerDocuments(int idTech)
-{
-    ui->documentsTable->setRowCount(0);
-
-    QSqlQuery query;
-    query.prepare(
-        "SELECT nom_fichier, type, TO_CHAR(date_ajout, 'DD/MM/YYYY HH24:MI:SS'), chemin "
-        "FROM documents WHERE tech_id = :tech_id");
-    query.bindValue(":tech_id", idTech);
-
-    if(query.exec()) {
-        while(query.next()) {
-            int row = ui->documentsTable->rowCount();
-            ui->documentsTable->insertRow(row);
-
-            // Nom du fichier
-            ui->documentsTable->setItem(row, 0,
-                new QTableWidgetItem(query.value(0).toString()));
-
-            // Type
-            ui->documentsTable->setItem(row, 1,
-                new QTableWidgetItem(query.value(1).toString()));
-
-            // Date
-            ui->documentsTable->setItem(row, 2,
-                new QTableWidgetItem(query.value(2).toString()));
-
-            // Taille
-            QFileInfo fileInfo(query.value(3).toString());
-            qint64 size = fileInfo.size();
-            QString sizeStr;
-            if(size < 1024)
-                sizeStr = QString::number(size) + " B";
-            else if(size < 1024*1024)
-                sizeStr = QString::number(size/1024.0, 'f', 1) + " KB";
-            else
-                sizeStr = QString::number(size/1024.0/1024.0, 'f', 1) + " MB";
-
-            ui->documentsTable->setItem(row, 3, new QTableWidgetItem(sizeStr));
-        }
-    }
-
-    ui->documentsTable->resizeColumnsToContents();
-}
 
 void MainWindow::on_recherchenom_clicked()
 {
@@ -1641,48 +1497,7 @@ void MainWindow::on_recherchecompetence_clicked()
 
 }
 
-void MainWindow::on_bilan_clicked()
-{
-    // Récupère la liste des techniciens absents à partir de la base de données
-        QList<technicien> techniciensAbsents;
-        QSqlQuery query;
-        query.prepare("SELECT * FROM TECHNICEN WHERE LOWER(absent) = 'oui'"); // Filtrer les absents
-
-        if (query.exec()) {
-            while (query.next()) {
-                technicien t;
-                t.setID(query.value("id").toInt());
-                t.setNom(query.value("nom").toString());
-                t.setPrenom(query.value("prenom").toString());
-                t.setcompetence(query.value("competence").toString());
-                t.setdisponibilite(query.value("disponibilite").toString());
-                t.setphoneNumber(query.value("phoneNumber").toString());
-                t.setabsent(query.value("absent").toString());
-                t.setadresse(query.value("adresse").toString());
-                techniciensAbsents.append(t);
-            }
-        }
-
-        if (techniciensAbsents.isEmpty()) {
-            QMessageBox::information(this, tr("Aucun technicien absent"), tr("Aucun technicien absent trouvé."));
-            return;
-        }
-
-        // Demander à l'utilisateur de choisir un emplacement pour enregistrer le fichier PDF
-        QString filePath = QFileDialog::getSaveFileName(this, tr("Enregistrer le bilan des absences"), "", "*.pdf");
-
-        if (filePath.isEmpty()) {
-            QMessageBox::warning(this, tr("Annulé"), tr("Vous n'avez pas spécifié de chemin pour le PDF."));
-            return;
-        }
-
-        // Générer le PDF
-        technicien tempTech; // Utilisation d'un objet temporaire pour appeler la méthode statique
-        if (tempTech.convertirEnPDFAbsents(filePath, techniciensAbsents)) {
-            QMessageBox::information(this, tr("Succès"), tr("Le bilan des absences a été généré avec succès."));
-        } else {
-            QMessageBox::critical(this, tr("Erreur"), tr("Échec de la génération du PDF."));
-        }
-}
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
+
+
