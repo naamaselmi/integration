@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>AUTACARE.png</file>
+        <file>../../Desktop/photo/AUTACARE2.png</file>
     </qresource>
 </RCC>

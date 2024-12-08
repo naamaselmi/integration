@@ -1,4 +1,6 @@
 #include "mainwindow.h"
+#include "connection.h"
+
 #include "ui_mainwindow.h"
 #include <QMessageBox>
 #include "vehicule.h"
@@ -55,10 +57,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->tableView->setModel(Vtmp.affi());
     labellepainture = ui->labellepainture;
+     ui->stackedWidget->setCurrentIndex(0);
 
     connect(ui->GV, &QPushButton::clicked, this, &MainWindow::switchToGestionVehicule);
     connect(ui->GT, &QPushButton::clicked, this, &MainWindow::switchToGestionTechnicien);
-
+    //connect(ui->login_2, &QPushButton::clicked, this, &MainWindow::onLoginClicked);
 }
 
 MainWindow::~MainWindow()
@@ -69,13 +72,13 @@ MainWindow::~MainWindow()
 void MainWindow::  switchToGestionVehicule()
 {
     qDebug() << "Switching to Gestion Vehicule";
-    ui->stackedWidget->setCurrentIndex(0); // Index of Gestion Vehicule page
+    ui->stackedWidget_2->setCurrentIndex(0); // Index of Gestion Vehicule page
 }
 
 void MainWindow::switchToGestionTechnicien()
 {
     qDebug() << "Switching to Gestion Technicien";
-    ui->stackedWidget->setCurrentIndex(2); // Index of Gestion Technicien page
+    ui->stackedWidget_2->setCurrentIndex(2); // Index of Gestion Technicien page
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1500,4 +1503,37 @@ void MainWindow::on_recherchecompetence_clicked()
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
+
+
+void MainWindow::on_login_2_clicked()
+{
+
+    QString email = ui->email_2->text();
+    QString motDePasse = ui->mdp->text();
+
+    if (email.isEmpty() || motDePasse.isEmpty()) {
+        QMessageBox::warning(this, "Erreur", "Veuillez remplir tous les champs.");
+        return;
+    }
+
+    Connection* conn = Connection::getInstance();
+
+       // Check if the connection is successful
+       if (!conn->createconnect()) {
+           QMessageBox::critical(this, "Database Error", "Connection failed!");
+           return;
+       }
+
+       // Authenticate the user
+       if (conn->authenticateUser(email, motDePasse)) {
+           QMessageBox::information(this, "Login", "Login Successful");
+           ui->stackedWidget->setCurrentIndex(1);
+           // Proceed with login (you can navigate to another window or update UI)
+       } else {
+           QMessageBox::critical(this, "Login", "Invalid Credentials");
+       }
+
+       // Close the connection when done
+       //conn->closeConnection();
+}
 
